@@ -29,57 +29,58 @@ int times = 0;
 int state = 0;
 char key;
 
+void init_row(int row_number) {
+  if (row_number == 0) {
+    for (int k = 0; k < 16; k++) {
+      lcd.setCursor(k, 0);
+      lcd.print(" ");
+    }
+  } else if (row_number == 1) {
+    for (int k = 0; k < 16; k++) {
+      lcd.setCursor(k, 1);
+      lcd.print(" ");
+    }
+  } else {
+    lcd.clear();
+    lcd.print("error");
+    return;
+  }
+  lcd.setCursor(0, 0);
+}
+
+void print_SB(int print_strike, int print_ball) {
+  lcd.print(F("S : "));
+  lcd.setCursor(4, 0);
+  lcd.print(print_strike);
+  lcd.setCursor(9, 0);
+  lcd.print(F("B : "));
+  lcd.setCursor(13, 0);
+  lcd.print(print_ball);
+}
+
 void mainFunc() {
   for (int i = 0; i < 4; i++) {
     keyInput[i] = keypad.waitForKey();
     while (1) {
       if (keyInput[i] == '*' || keyInput[i] == '#') {
-        for (int k = 0; k < 16; k++) {
-          lcd.setCursor(k, 0);
-          lcd.print(" ");
-        }
-        lcd.setCursor(0, 0);
+        init_row(0);
         lcd.print("Press number");
         keyInput[i] = keypad.waitForKey();
       } else if (i == 0) {
-        for (int k = 0; k < 16; k++) {
-          lcd.setCursor(k, 0);
-          lcd.print(" ");
-        }
-        lcd.setCursor(0, 0);
-        lcd.print(F("S : "));
-        lcd.setCursor(4, 0);
-        lcd.print(strike);
-        lcd.setCursor(9, 0);
-        lcd.print(F("B : "));
-        lcd.setCursor(13, 0);
-        lcd.print(ball);
+        init_row(0);
+        print_SB(strike, ball);
         break;
       } else break;
     }
     for (int j = 0; j < i; j++) {
       if (keyInput[i] == keyInput[j]) {
         i--;
-        for (int k = 0; k < 16; k++) {
-          lcd.setCursor(k, 0);
-          lcd.print(" ");
-        }
-        lcd.setCursor(0, 0);
+        init_row(0);
         lcd.print(F("Another number"));
         break;
       } else {
-        for (int k = 0; k < 16; k++) {
-          lcd.setCursor(k, 0);
-          lcd.print(" ");
-        }
-        lcd.setCursor(0, 0);
-        lcd.print(F("S : "));
-        lcd.setCursor(4, 0);
-        lcd.print(strike);
-        lcd.setCursor(9, 0);
-        lcd.print(F("B : "));
-        lcd.setCursor(13, 0);
-        lcd.print(ball);
+        init_row(0);
+        print_SB(strike, ball);
       }
     }
     lcd.setCursor(i, 1);
@@ -90,13 +91,7 @@ void mainFunc() {
   strike = 0;
   for (int i = 0; i < 4; i++) {
     if (keyInput[i] == result[i]) strike++;
-    else {
-      for (int j = 0; j < 4; j++) {
-        if (keyInput[i] == result[j]) {
-          ball++;
-        }
-      }
-    }
+    else for (int j = 0; j < 4; j++) if (keyInput[i] == result[j]) ball++;
   }
   if (ball == 0 && strike == 0) {
     lcd.clear();
@@ -104,13 +99,7 @@ void mainFunc() {
     delay(1000);
     times++;
     lcd.clear();
-    lcd.print(F("S : "));
-    lcd.setCursor(4, 0);
-    lcd.print(strike);
-    lcd.setCursor(9, 0);
-    lcd.print(F("B : "));
-    lcd.setCursor(13, 0);
-    lcd.print(ball);
+    print_SB(strike, ball);
     return;
   } else if (strike == 4) {
     times++;
@@ -130,13 +119,7 @@ void mainFunc() {
     return;
   } else {
     lcd.clear();
-    lcd.print(F("S : "));
-    lcd.setCursor(4, 0);
-    lcd.print(strike);
-    lcd.setCursor(9, 0);
-    lcd.print(F("B : "));
-    lcd.setCursor(13, 0);
-    lcd.print(ball);
+    print_SB(strike, ball);
     times++;
   }
 }
@@ -151,9 +134,6 @@ void setup() {
   delay(2000);
   lcd.clear();
   lcd.print(F("Press 1 to Start"));
-
-  Serial.begin(9600);
-  Serial.println("start");
 }
 
 void loop() {
@@ -161,9 +141,7 @@ void loop() {
     randomSeed(millis());
     for (int i = 0; i < 4; i++) {
       result[i] = random(48, 58);
-      for (int j = 0; j < i; j++) {
-        if (result[i] == result[j]) i--;
-      }
+      for (int j = 0; j < i; j++) if (result[i] == result[j]) i--;
     }
     key = keypad.waitForKey();
   }
@@ -179,8 +157,6 @@ void loop() {
         state = 0;
         return;
       }
-    } else {
-      mainFunc();
-    }
+    } else mainFunc();
   }
 }
